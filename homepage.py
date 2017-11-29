@@ -22,7 +22,7 @@ def index():
         return redirect(url_for('becomeUser'))
     elif 'username' in session:
         print(session['username'])
-        return render_template('homepage.html')
+        return redirect(url_for('logout'))
     else:
         print("in else")
         return render_template('homepage.html')
