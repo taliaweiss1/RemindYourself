@@ -4,9 +4,12 @@ import sys, os
 import re
 
 from flask import Flask, render_template, session, redirect, url_for, escape, request
+from pymongo import MongoClient
 app = Flask(__name__)
+client = MongoClient()
+db = client.reminders
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     # elif request.form['submit'] == 'Login':
     #     print("index login")
@@ -39,6 +42,15 @@ def login():
 
 @app.route('/becomeUser', methods=['GET', 'POST'])
 def becomeUser():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username and password:
+            print("user and password exist")
+            if db.users.find({"username": username}).count() == 0:
+                print("user doesn't exist")
+                db.users.insert_one({"username": username, "password": password})
+                return redirect(url_for('index'))
     return render_template('becomeUser.html')
 
 @app.route('/logout')
