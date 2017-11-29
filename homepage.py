@@ -40,14 +40,12 @@ def login():
         if username and password:
             if db.users.find_one({"username": username}).count() == 1:
                 print("in if find one")
-            #if in database correctly, login as below
                 json = db.users.find({"username": username})
                 saltedPass = json.password
                 if sha256_crypt.verify(password, saltedPass):
                     print("pass verified")
                     session['username'] = request.form['username']
                     return redirect(url_for('loggedIn')
-        #return redirect(url_for('index')
     return render_template('login.html')
 
 @app.route('/becomeUser', methods=['GET', 'POST'])
