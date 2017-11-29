@@ -2,8 +2,9 @@
 import sys, os
 #regex
 import re
-
+import hashlib, uuid
 from flask import Flask, render_template, session, redirect, url_for, escape, request
+from passlib.hash import sha256_crypt
 from pymongo import MongoClient
 app = Flask(__name__)
 client = MongoClient()
@@ -25,7 +26,7 @@ def index():
         return redirect(url_for('becomeUser'))
     elif 'username' in session:
         print(session['username'])
-        return redirect(url_for('logout'))
+        return redirect(url_for('loggedIn'))
     else:
         print("in else")
         return render_template('homepage.html')
@@ -34,10 +35,19 @@ def index():
 def login():
     if request.method == 'POST':
         #check database for user and correct password
-        
-        #if in database correctly, login as below
-        session['username'] = request.form['username']
-        return redirect(url_for('index'))
+        username = request.form['username']
+        password = request.form['password']
+        if username and password:
+            if db.users.find_one({"username": username}).count() == 1:
+                print("in if find one")
+            #if in database correctly, login as below
+                json = db.users.find({"username": username})
+                saltedPass = json.password
+                if sha256_crypt.verify(password, saltedPass):
+                    print("pass verified")
+                    session['username'] = request.form['username']
+                    return redirect(url_for('loggedIn')
+        #return redirect(url_for('index')
     return render_template('login.html')
 
 @app.route('/becomeUser', methods=['GET', 'POST'])
@@ -46,23 +56,36 @@ def becomeUser():
         username = request.form['username']
         password = request.form['password']
         if username and password:
-            print("user and password exist")
             if db.users.find({"username": username}).count() == 0:
                 print("user doesn't exist")
-                db.users.insert_one({"username": username, "password": password})
+                saltedPass = sha256_crypt.encrypt(password)
+                print("salted pass: " + saltedPass)
+                db.users.insert_one({"username": username, "password": saltedPass})
+                session['username'] = username
                 return redirect(url_for('index'))
     return render_template('becomeUser.html')
 
-@app.route('/logout')
+@app.route('/loggedIn', methods=['GET', 'POST'])
+def loggedIn():
+    if "logout" in request.form:
+        print("logout clicked")
+        return redirect(url_for('logout'))
+    return render_template('loggedIn.html')
+        
+
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
+    print("in logout")
+    print(session['username'])
     # remove the username from the session if it's there
     session.pop('username', None)
+    #print(session['username'])
     return redirect(url_for('index'))
+
 
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
-@app.route('/becomeUser')
 
 @app.route('/hello')
 @app.route('/hello/<name>')
