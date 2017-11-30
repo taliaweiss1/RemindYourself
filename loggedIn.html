@@ -1,20 +1,30 @@
 <!doctype html>
-<title>Logged In</title>
-{% if name %}
-    <h1>Hello {{ name }}!</h1>
-{% endif %}
-<form method="post">
-    <p><input type=submit name = "logout" value="logout">
-</form>
-<form method="post">
-    Create Event:
-    <p><label for="reminderName">Reminder Name: </label>
-    <input type='text' id="reminderName" name="reminderName">
-    <p><label for="reminderText">Text Message to Send:</label>
-    <p><textarea name = "reminderText" id="reminderText" rows="10" cols="30"></textarea>
-    <p><label for="reminderDay">What day do you want this reminder?: </label>
-    <input type='date' id="reminderDay" name="reminderDay">
-    <p><label for="reminderTime">What time do you want this reminder?:</label>
-    <input type='time' id="reminderTime" name="reminderTime">
-    <p><input type='submit' name = "createReminder" value="createReminder">
-</form>
+<html>
+<head>
+    <title>Your Reminders</title>
+    <meta charset="utf-8"/>
+</head>
+<body>
+    {% if name %}
+        <h1>{{ name }}'s reminders</h1>
+    {% endif %}
+    {% for n in events %}
+        <p>{{ n }}</p>
+    {% endfor %}
+    <form method="post">
+        <p><input type='submit' name = "logout" value="logout">
+    </form>
+    <form method="post">
+        <h3>Create Event:</h3>
+        <p><label for="reminderName">Reminder Name: </label>
+        <input type='text' id="reminderName" name="reminderName">
+        <p><label for="reminderText">Text Message to Send:</label>
+        <p><textarea name = "reminderText" id="reminderText" rows="10" cols="30"></textarea>
+        <p><label for="reminderDay">What day do you want this reminder?: </label>
+        <input type='date' id="reminderDay" name="reminderDay">
+        <p><label for="reminderTime">What time do you want this reminder?:</label>
+        <input type='time' id="reminderTime" name="reminderTime">
+        <p><input type='submit' name = "createReminder" value="createReminder">
+    </form>
+</body>
+</html>

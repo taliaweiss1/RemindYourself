@@ -28,7 +28,7 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
+    if request.method == 'POST' and "login" in request.form:
         #check database for user and correct password
         username = request.form['username']
         password = request.form['password']
@@ -42,11 +42,13 @@ def login():
                     session['username'] = request.form['username']
                     return redirect(url_for('loggedIn'))
                 print("doesn't match")
+    if "back" in request.form:
+        return redirect(url_for('index'))
     return render_template('login.html')
 
 @app.route('/becomeUser', methods=['GET', 'POST'])
 def becomeUser():
-    if request.method == 'POST':
+    if request.method == 'POST' and "becomeUser" in request.form:
         username = request.form['username']
         password = request.form['password']
         phoneNumber = request.form['phoneNumber']
@@ -60,10 +62,13 @@ def becomeUser():
                     session['username'] = username
                     session['phoneNumber'] = phoneNumber
                     return redirect(url_for('index'))
+    if "back" in request.form:
+        return redirect(url_for('index'))
     return render_template('becomeUser.html')
 
 @app.route('/loggedIn', methods=['GET', 'POST'])
 def loggedIn():
+    username = session['username']
     if "logout" in request.form:
         print("logout clicked")
         return redirect(url_for('logout'))
@@ -73,16 +78,17 @@ def loggedIn():
         reminderDay = request.form['reminderDay']
         reminderTime = request.form['reminderTime']
         reminderText = request.form['reminderText']
-        username = session['username']
         if reminderName and reminderTime and reminderDay and reminderText:
-            print("reminder time: " + reminderTime)
-            print("reminder day: " + reminderDay)
             print("reminder name: " + reminderName)
             print("reminder time: " + reminderTime)
             print("reminder day: " + reminderDay)
             print("reminder text: " + reminderText)
             db.events.insert_one({"username": username, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-    return render_template('loggedIn.html')
+    result = db.events.find({"username": username})
+    listEvents =[]
+    for doc in result:
+        listEvents.append(doc)
+    return render_template('loggedIn.html', events=listEvents, name=username)
         
 
 @app.route('/logout', methods=['GET', 'POST'])

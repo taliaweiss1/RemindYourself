@@ -1,9 +1,20 @@
 <!doctype html>
-<title>Login</title>
+<html>
+<head>
+    <title>Login</title>
+    <meta charset="utf-8"/>
+</head>
+<body>
 <form method="post">
     <p><label for="username">Username: </label>
-    <input type=text id="username" name=username>
+    <input type='text' id="username" name="username">
     <p><label for="password">Password: </label>
-    <input type=password id="password" name=password>
-    <p><input type=submit value="Login">
+    <input type='password' id="password" name='password'>
+    <p><input type='submit' name="login" id="login" value="Login">
 </form>
+<form method="post">
+    <p>Go Back
+    <input type='submit' name="back" id='back' value="Back">
+</form>
+</body>
+</html>
