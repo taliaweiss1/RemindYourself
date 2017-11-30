@@ -6,18 +6,13 @@ import hashlib, uuid
 from flask import Flask, render_template, session, redirect, url_for, escape, request
 from passlib.hash import sha256_crypt
 from pymongo import MongoClient
+from datetime import datetime
 app = Flask(__name__)
 client = MongoClient()
 db = client.reminders
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    # elif request.form['submit'] == 'Login':
-    #     print("index login")
-    #     #return redirect(url_for('login'))
-    #     return 'clicked login'
-    # elif request.form['submit'] == 'BecomeUser':
-    #     return redirect(url_for('becomeUser'))
     if "login" in request.form:
         print("login")
         return redirect(url_for('login'))
@@ -38,14 +33,15 @@ def login():
         username = request.form['username']
         password = request.form['password']
         if username and password:
-            if db.users.find_one({"username": username}).count() == 1:
+            if db.users.find_one({"username": username}):
                 print("in if find one")
-                json = db.users.find({"username": username})
-                saltedPass = json.password
+                cursor = db.users.find_one({"username": username})
+                saltedPass = cursor['password']
                 if sha256_crypt.verify(password, saltedPass):
                     print("pass verified")
                     session['username'] = request.form['username']
-                    return redirect(url_for('loggedIn')
+                    return redirect(url_for('loggedIn'))
+                print("doesn't match")
     return render_template('login.html')
 
 @app.route('/becomeUser', methods=['GET', 'POST'])
@@ -53,14 +49,17 @@ def becomeUser():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username and password:
+        phoneNumber = request.form['phoneNumber']
+        if username and password and phoneNumber:
             if db.users.find({"username": username}).count() == 0:
-                print("user doesn't exist")
-                saltedPass = sha256_crypt.encrypt(password)
-                print("salted pass: " + saltedPass)
-                db.users.insert_one({"username": username, "password": saltedPass})
-                session['username'] = username
-                return redirect(url_for('index'))
+                regex = re.compile('\d{10}')
+                match = regex.match(phoneNumber)
+                if match is not None:
+                    saltedPass = sha256_crypt.encrypt(password)
+                    db.users.insert_one({"username": username, "password": saltedPass, "phoneNumber": phoneNumber})
+                    session['username'] = username
+                    session['phoneNumber'] = phoneNumber
+                    return redirect(url_for('index'))
     return render_template('becomeUser.html')
 
 @app.route('/loggedIn', methods=['GET', 'POST'])
@@ -68,6 +67,21 @@ def loggedIn():
     if "logout" in request.form:
         print("logout clicked")
         return redirect(url_for('logout'))
+    if "createReminder" in request.form:
+        print("here")
+        reminderName = request.form['reminderName']
+        reminderDay = request.form['reminderDay']
+        reminderTime = request.form['reminderTime']
+        reminderText = request.form['reminderText']
+        username = session['username']
+        if reminderName and reminderTime and reminderDay and reminderText:
+            print("reminder time: " + reminderTime)
+            print("reminder day: " + reminderDay)
+            print("reminder name: " + reminderName)
+            print("reminder time: " + reminderTime)
+            print("reminder day: " + reminderDay)
+            print("reminder text: " + reminderText)
+            db.events.insert_one({"username": username, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
     return render_template('loggedIn.html')
         
 
