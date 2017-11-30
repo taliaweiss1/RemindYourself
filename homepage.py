@@ -86,8 +86,47 @@ def loggedIn():
             db.events.insert_one({"username": username, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
     result = db.events.find({"username": username})
     listEvents =[]
+    #update so title can have spaces and really anything
+    reminderNameRe = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
+    reminderNameRe2 = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
+    #consider " and '
+    reminderTextRe1 = re.compile(r"u'reminderText': u'(.*)', u'reminderDay")
+    reminderTextRe2 = re.compile(r"u'reminderText': u\"(.*)\", u'reminderDay")
+    reminderDayRe = re.compile(r"u'reminderDay': u'(\d{4}-\d{2}-\d{2})', u'_id'")
+    reminderTimeRe = re.compile(r"u'reminderTime': u'(\d{2}:\d{2})', u'reminderText':")
     for doc in result:
-        listEvents.append(doc)
+        eventStr=""
+        matchName = reminderNameRe.search(str(doc))
+        matchName2 = reminderNameRe2.search(str(doc))
+        matchText1 = reminderTextRe1.search(str(doc))
+        matchText2 = reminderTextRe2.search(str(doc))
+        matchTime = reminderTimeRe.search(str(doc))
+        matchDay = reminderDayRe.search(str(doc))
+        if matchName is not None:
+            print("one name: " + matchName.group(1))
+            eventStr+=matchName.group(1) + ": "
+        elif matchName2 is not None:
+            print("two name: " + matchName2.group(1))
+            eventStr+=matchName2.group(1) + ": "
+        if matchText1 is not None:
+            print("one text: " + matchText1.group(1))
+            eventStr+=matchText1.group(1)
+        elif matchText2 is not None:
+            print("two text: " + matchText2.group(1))
+            eventStr+=matchText2.group(1)
+        if matchTime is not None:
+            print(matchTime.group(1))
+            time = re.compile("(\d{2}):(\d{2})")
+            tm = time.search(matchTime.group(1))
+            if int(tm.group(1)) < 12:
+                eventStr+= "\n at " + matchTime.group(1) + "AM"
+            else:
+                hr = str(int(tm.group(1))-12)
+                eventStr+= "\n at " + hr + ":" + tm.group(2) + "PM"
+        if matchDay is not None:
+            print(matchDay.group(1))
+            eventStr+=" on " + matchDay.group(1)
+        listEvents.append(eventStr)
     return render_template('loggedIn.html', events=listEvents, name=username)
         
 
