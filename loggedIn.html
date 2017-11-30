@@ -2,18 +2,17 @@
 <html>
 <head>
     <title>Your Reminders</title>
+    <link rel = "stylesheet" type = "text/css" href="{{ url_for('static', filename='css/reminders.css') }}" />
     <meta charset="utf-8"/>
 </head>
 <body>
     {% if name %}
         <h1>{{ name }}'s reminders</h1>
     {% endif %}
+    <div class="remindersAndForm">
     {% for n in events %}
-        <p>{{ n }}</p>
+        <h5>{{ n }}</h5>
     {% endfor %}
-    <form method="post">
-        <p><input type='submit' name = "logout" value="logout">
-    </form>
     <form method="post">
         <h3>Create Event:</h3>
         <p><label for="reminderName">Reminder Name: </label>
@@ -26,5 +25,12 @@
         <input type='time' id="reminderTime" name="reminderTime">
         <p><input type='submit' name = "createReminder" value="createReminder">
     </form>
+    <form method="post">
+        <p><input type='submit' name = "logout" value="logout">
+    </form>
+    </div>
+    <div class="users">
+        <p><h3>Other Users:</h3>
+    </div>
 </body>
 </html>

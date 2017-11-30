@@ -86,10 +86,11 @@ def loggedIn():
             db.events.insert_one({"username": username, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
     result = db.events.find({"username": username})
     listEvents =[]
-    #update so title can have spaces and really anything
+    #regex for title of event, text of event, date and time
+    #takes into considersation strings with apostrophies
     reminderNameRe = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
     reminderNameRe2 = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
-    #consider " and '
+    #takes into considersation strings with apostrophies
     reminderTextRe1 = re.compile(r"u'reminderText': u'(.*)', u'reminderDay")
     reminderTextRe2 = re.compile(r"u'reminderText': u\"(.*)\", u'reminderDay")
     reminderDayRe = re.compile(r"u'reminderDay': u'(\d{4}-\d{2}-\d{2})', u'_id'")

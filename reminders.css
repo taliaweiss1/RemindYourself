@@ -1,0 +1,23 @@
+h1{
+    color: White;
+    text-align: center;
+    font-size: 400%;
+    margin: 0px;
+    margin-bottom: 0px;
+}
+h5{
+    color: White;
+}
+body{
+    background-color: black;
+    color:white;
+    font-family: Georgia, Times New Roman;
+}
+.remindersAndForm{
+    position: absolute;
+    left:0px;
+}
+.users{
+    position: absolute;
+    right:0px;
+}
