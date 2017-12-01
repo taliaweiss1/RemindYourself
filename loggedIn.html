@@ -10,27 +10,46 @@
         <h1>{{ name }}'s reminders</h1>
     {% endif %}
     <div class="remindersAndForm">
-    {% for n in events %}
-        <h5>{{ n }}</h5>
-    {% endfor %}
-    <form method="post">
-        <h3>Create Event:</h3>
-        <p><label for="reminderName">Reminder Name: </label>
-        <input type='text' id="reminderName" name="reminderName">
-        <p><label for="reminderText">Text Message to Send:</label>
-        <p><textarea name = "reminderText" id="reminderText" rows="10" cols="30"></textarea>
-        <p><label for="reminderDay">What day do you want this reminder?: </label>
-        <input type='date' id="reminderDay" name="reminderDay">
-        <p><label for="reminderTime">What time do you want this reminder?:</label>
-        <input type='time' id="reminderTime" name="reminderTime">
-        <p><input type='submit' name = "createReminder" value="createReminder">
-    </form>
-    <form method="post">
-        <p><input type='submit' name = "logout" value="logout">
-    </form>
+        {% for n in events %}
+            <h5>{{ n }}</h5>
+        {% endfor %}
+        <form method='post'>
+            <input type = 'submit' name='editReminder' value ="Edit A Reminder">
+            <input type = 'submit' name ='deleteReminder' value ="Delete A Reminder">
+        </form>
+        <form method="post">
+            <h3>Create Event:</h3>
+            <p><label for="reminderName">Reminder Name: </label>
+            <input type='text' id="reminderName" name="reminderName">
+            <p><label for="userTo">Send To: </label>
+            <input type='text' id="userTo" name="userTo" value= {{ name }}>
+            <p><label for="reminderText">Text Message to Send:</label>
+            <p><textarea name = "reminderText" id="reminderText" rows="10" cols="30"></textarea>
+            <p><label for="reminderDay">What day do you want this reminder?: </label>
+            <input type='date' id="reminderDay" name="reminderDay">
+            <p><label for="reminderTime">What time do you want this reminder?:</label>
+            <input type='time' id="reminderTime" name="reminderTime">
+            <p><input type='submit' name = "createReminder" value="Create Reminder">
+        </form>
+        <form method="post">
+            <p><input type ='submit' name = 'editInfo' value = 'Edit My Info'>
+            <p><input type='submit' name = "logout" value="logout">
+        </form>
     </div>
     <div class="users">
         <p><h3>Other Users:</h3>
+        {% for n in users %}
+            <h5>{{ n }}</h5>
+        {% endfor %}
+        <p><h3>Friends:</h3>
+        {% for n in friends %}
+            <h5>{{ n }}</h5>
+        {% endfor %}
+        <form method="post">
+            <p></p><label for='userToAdd'>Add Friend:</label>
+            <input type='text' id = 'userToAdd' name = 'userToAdd' placeholder='Username of Friend'/>
+            <p></p><input type='submit' name = 'addFriend' value='Add Friend'/>
+        </form>
     </div>
 </body>
 </html>

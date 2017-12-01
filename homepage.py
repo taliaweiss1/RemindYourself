@@ -37,9 +37,11 @@ def login():
                 print("in if find one")
                 cursor = db.users.find_one({"username": username})
                 saltedPass = cursor['password']
+                phoneNum = cursor['phoneNumber']
                 if sha256_crypt.verify(password, saltedPass):
                     print("pass verified")
                     session['username'] = request.form['username']
+                    session['phoneNumber'] = phoneNum
                     return redirect(url_for('loggedIn'))
                 print("doesn't match")
     if "back" in request.form:
@@ -66,24 +68,163 @@ def becomeUser():
         return redirect(url_for('index'))
     return render_template('becomeUser.html')
 
+@app.route('/updateInfo', methods=['GET', 'POST'])
+def updateInfo():
+    if "updateUser" in request.form:
+        newUser = request.form['username']
+        if newUser:
+            db.users.update({"username": session['username']}, {"$set": {"username": newUser}})
+            session['username'] = newUser
+            return redirect(url_for('loggedIn'))
+    if "updatePhone" in request.form:
+        newPhone = request.form['phoneNumber']
+        regex = re.compile('\d{10}')
+        match = regex.match(newPhone)
+        if match is not None:
+            db.users.update({"username": session['username']}, {"$set": {"phoneNumber": newPhone}})
+            session['phoneNumber'] = newPhone
+            return redirect(url_for('loggedIn'))
+    if "updatePass" in request.form:
+        newPass = request.form['password']
+        if newPass:
+            newSaltedPass = sha256_crypt.encrypt(newPass)
+            db.users.update({"username": session['username']}, {"$set": {"password": newSaltedPass}})
+            return redirect(url_for('loggedIn'))
+    if "back" in request.form:
+        return redirect(url_for('index'))
+    return render_template('editUser.html', name=session['username'], number=session['phoneNumber'])
+
+@app.route('/editReminder', methods=['GET', 'POST'])
+def editReminder():
+    result = db.events.find({"username": session['username']})
+    listEvents =[]
+    #regex for title of event, text of event, date and time
+    #takes into considersation strings with apostrophies
+    reminderNameRe = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
+    reminderNameRe2 = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
+    #takes into considersation strings with apostrophies
+    reminderTextRe1 = re.compile(r"u'reminderText': u'(.*)', u'reminderDay")
+    reminderTextRe2 = re.compile(r"u'reminderText': u\"(.*)\", u'reminderDay")
+    reminderDayRe = re.compile(r"u'reminderDay': u'(\d{4}-\d{2}-\d{2})', u'_id'")
+    reminderTimeRe = re.compile(r"u'reminderTime': u'(\d{2}:\d{2})', u'reminderText':")
+    for doc in result:
+        eventStr=""
+        matchName = reminderNameRe.search(str(doc))
+        matchName2 = reminderNameRe2.search(str(doc))
+        matchText1 = reminderTextRe1.search(str(doc))
+        matchText2 = reminderTextRe2.search(str(doc))
+        matchTime = reminderTimeRe.search(str(doc))
+        matchDay = reminderDayRe.search(str(doc))
+        if matchName is not None:
+            print("one name: " + matchName.group(1))
+            eventStr+=matchName.group(1) + ": "
+        elif matchName2 is not None:
+            print("two name: " + matchName2.group(1))
+            eventStr+=matchName2.group(1) + ": "
+        if matchText1 is not None:
+            print("one text: " + matchText1.group(1))
+            eventStr+=matchText1.group(1)
+        elif matchText2 is not None:
+            print("two text: " + matchText2.group(1))
+            eventStr+=matchText2.group(1)
+        if matchTime is not None:
+            print(matchTime.group(1))
+            time = re.compile("(\d{2}):(\d{2})")
+            tm = time.search(matchTime.group(1))
+            if int(tm.group(1)) < 12:
+                eventStr+= "\n at " + matchTime.group(1) + "AM"
+            else:
+                hr = str(int(tm.group(1))-12)
+                eventStr+= "\n at " + hr + ":" + tm.group(2) + "PM"
+        if matchDay is not None:
+            print(matchDay.group(1))
+            eventStr+=" on " + matchDay.group(1)
+        listEvents.append(eventStr)
+    if "updateReminder" in request.form:
+        reminderName = request.form['reminderName']
+        newReminderName = request.form['newReminderName']
+        reminderDay = request.form['reminderDay']
+        reminderTime = request.form['reminderTime']
+        reminderText = request.form['reminderText']
+        reminderTo = request.form['userTo']
+        print(reminderName + " " + newReminderName + ' ' + reminderDay + " " + reminderTime + " " + reminderText + " " + reminderTo)
+        if reminderName and newReminderName and reminderDay and reminderTime and reminderText and reminderTo:
+            print("all fields have been filled")
+            if db.events.find({"username": session['username'], "reminderName": reminderName}).count() != 0:
+                db.events.update({"username": session['username'], "reminderName": reminderName}, {"$set":{"username": reminderTo, "reminderName": newReminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText}})
+                print("right before return")
+                return redirect(url_for('loggedIn')) 
+    if "back" in request.form:
+        return redirect(url_for('index'))      
+    return render_template('editReminder.html', name=session['username'], events=listEvents)
+
+@app.route('/deleteReminder', methods=['GET', 'POST'])
+def deleteReminder():
+    result = db.events.find({"username": session['username']})
+    listEvents =[]
+    #regex for title of event, text of event, date and time
+    #takes into considersation strings with apostrophies
+    reminderNameRe = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
+    reminderNameRe2 = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
+    #takes into considersation strings with apostrophies
+    reminderTextRe1 = re.compile(r"u'reminderText': u'(.*)', u'reminderDay")
+    reminderTextRe2 = re.compile(r"u'reminderText': u\"(.*)\", u'reminderDay")
+    reminderDayRe = re.compile(r"u'reminderDay': u'(\d{4}-\d{2}-\d{2})', u'_id'")
+    reminderTimeRe = re.compile(r"u'reminderTime': u'(\d{2}:\d{2})', u'reminderText':")
+    for doc in result:
+        eventStr=""
+        matchName = reminderNameRe.search(str(doc))
+        matchName2 = reminderNameRe2.search(str(doc))
+        matchText1 = reminderTextRe1.search(str(doc))
+        matchText2 = reminderTextRe2.search(str(doc))
+        matchTime = reminderTimeRe.search(str(doc))
+        matchDay = reminderDayRe.search(str(doc))
+        if matchName is not None:
+            print("one name: " + matchName.group(1))
+            eventStr+=matchName.group(1) + ": "
+        elif matchName2 is not None:
+            print("two name: " + matchName2.group(1))
+            eventStr+=matchName2.group(1) + ": "
+        if matchText1 is not None:
+            print("one text: " + matchText1.group(1))
+            eventStr+=matchText1.group(1)
+        elif matchText2 is not None:
+            print("two text: " + matchText2.group(1))
+            eventStr+=matchText2.group(1)
+        if matchTime is not None:
+            print(matchTime.group(1))
+            time = re.compile("(\d{2}):(\d{2})")
+            tm = time.search(matchTime.group(1))
+            if int(tm.group(1)) < 12:
+                eventStr+= "\n at " + matchTime.group(1) + "AM"
+            else:
+                hr = str(int(tm.group(1))-12)
+                eventStr+= "\n at " + hr + ":" + tm.group(2) + "PM"
+        if matchDay is not None:
+            print(matchDay.group(1))
+            eventStr+=" on " + matchDay.group(1)
+        listEvents.append(eventStr)
+    if "deleteReminder" in request.form:
+        reminderName = request.form['reminderName']
+        if reminderName:
+            if db.events.find({"username": session['username'], "reminderName": reminderName}).count() != 0:
+                db.events.remove({"username": session['username'], "reminderName": reminderName})
+                return redirect(url_for('loggedIn')) 
+    if "back" in request.form:
+        return redirect(url_for('index'))      
+    return render_template('deleteReminder.html', name=session['username'],events=listEvents)
+
 @app.route('/loggedIn', methods=['GET', 'POST'])
 def loggedIn():
     username = session['username']
     if "logout" in request.form:
-        print("logout clicked")
         return redirect(url_for('logout'))
-    if "createReminder" in request.form:
-        print("here")
-        reminderName = request.form['reminderName']
-        reminderDay = request.form['reminderDay']
-        reminderTime = request.form['reminderTime']
-        reminderText = request.form['reminderText']
-        if reminderName and reminderTime and reminderDay and reminderText:
-            print("reminder name: " + reminderName)
-            print("reminder time: " + reminderTime)
-            print("reminder day: " + reminderDay)
-            print("reminder text: " + reminderText)
-            db.events.insert_one({"username": username, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+    if "editInfo" in request.form:
+        return redirect(url_for('updateInfo'))
+    if "editReminder" in request.form:
+        return redirect(url_for('editReminder'))
+    if "deleteReminder" in request.form:
+        return redirect(url_for('deleteReminder'))
     result = db.events.find({"username": username})
     listEvents =[]
     #regex for title of event, text of event, date and time
@@ -128,7 +269,43 @@ def loggedIn():
             print(matchDay.group(1))
             eventStr+=" on " + matchDay.group(1)
         listEvents.append(eventStr)
-    return render_template('loggedIn.html', events=listEvents, name=username)
+    userList = db.users.find()
+    users = []
+    for user in userList:
+
+        name = re.compile(r"u'username': u'(.*)', u'password'")
+        userToAdd = name.search(str(user))
+        if userToAdd is not None:
+            if str(userToAdd.group(1)) != session['username']:
+                users.append(userToAdd.group(1))
+    if "addFriend" in request.form:
+        friend = request.form['userToAdd']
+        if friend:
+            if db.users.find_one({"username": friend}):
+                if db.friends.find({"username": session['username'], "friend": friend}).count() == 0:
+                    db.friends.insert_one({"username": username, "friend": friend})
+    friendList = db.friends.find({"username": session['username']})
+    friends = []
+    friendRe = re.compile(r"u'friend': u'(.*)'}")
+    for friend in friendList:
+        matchFriend = friendRe.search(str(friend))
+        if matchFriend is not None:
+            print(matchFriend.group(1))
+            friends.append(matchFriend.group(1))
+    if "createReminder" in request.form:
+        reminderName = request.form['reminderName']
+        reminderDay = request.form['reminderDay']
+        reminderTime = request.form['reminderTime']
+        reminderText = request.form['reminderText']
+        reminderTo = request.form['userTo']
+        if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
+            if reminderTo == session['username']:
+                db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+            else:
+                for friend in friends:
+                    if friend == reminderTo:
+                        db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+    return render_template('loggedIn.html', events=listEvents, name=session['username'], users=users, friends=friends)
         
 
 @app.route('/logout', methods=['GET', 'POST'])

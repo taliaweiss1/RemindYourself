@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+    <title>Edit A Reminder</title>
+    <link rel = "stylesheet" type = "text/css" href="{{ url_for('static', filename='css/reminders.css') }}" />
+    <meta charset="utf-8"/>
+</head>
+<body>
+<form method="post">
+    {% for n in events %}
+            <h5>{{ n }}</h5>
+    {% endfor %}
+    <form method="post">
+        <h3>Delete Reminder (please fill out all fields):</h3>
+        <p><label for="reminderName">Reminder Name: </label>
+        <input type='text' id="reminderName" name="reminderName">
+        <p><input type='submit' name = "deleteReminder" value="deleteReminder">
+    </form>
+</form>
+<form method="post">
+    <p>Go Back
+    <input type='submit' name = "back" id="back" value="Back">
+</form>
+</body>
+</html>

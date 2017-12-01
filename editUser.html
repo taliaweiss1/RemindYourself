@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+    <title>Edit Information</title>
+    <link rel = "stylesheet" type = "text/css" href="{{ url_for('static', filename='css/reminders.css') }}" />
+    <meta charset="utf-8"/>
+</head>
+<body>
+<form method="post">
+    <p><label for="username">Update Username: </label>
+    <input type='text' id="username" name=username value = {{ name }}>
+    <input type='submit' name ="updateUser" id="updateUser" value="Update Username">
+    <p><label for="password">Update Password: </label>
+    <input type='password' id="password" name=password>
+    <input type='submit' name ="updatePass" id="updatePass" value="Update Password">
+    <p><label for="phoneNumber">Update Phone Number:</label>
+    <input type="tel" id="phoneNumber" name="phoneNumber" value = {{ number }}>
+    <input type='submit' name ="updatePhone" id="updatePhone" value="Update Phone Number">
+</form>
+<form method="post">
+    <p>Go Back
+    <input type='submit' name = "back" id="back" value="Back">
+</form>
+</body>
+</html>
