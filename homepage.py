@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys, os
+from twilio.rest import Client
 #regex
 import re
-import hashlib, uuid
 from flask import Flask, render_template, session, redirect, url_for, escape, request
 from passlib.hash import sha256_crypt
 from pymongo import MongoClient
@@ -10,6 +10,10 @@ from datetime import datetime
 app = Flask(__name__)
 client = MongoClient()
 db = client.reminders
+account_sid = "AC8ce6439ae954b6854c0116fbbf45b8be"
+auth_token = "d8dfb003de3fbd07d7e00ade381c7561"
+twilioClient = Client(account_sid, auth_token)
+numberFrom = "+15162520096"
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -321,13 +325,82 @@ def logout():
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
+def sendMessage(numberTo, body):
+    print("in send message")
+    message = twilioClient.messages.create(
+        to=numberTo,
+        from_=numberFrom,
+        body=body
+    )
+    
 
-@app.route('/hello')
-@app.route('/hello/<name>')
-def hello(name=None):
-    return render_template('hello.html', name=name)
+    
 
 
 if __name__ == "__main__":
+    now = datetime.now()
+    day = now.day
+    if day < 10:
+        day = "0" + str(day)
+    month = now.month
+    if month < 10:
+        month = "0" + str(month)
+    year = now.year
+    hour = now.hour
+    if hour < 10:
+        hour = "0" + str(hour)
+    minute = now.minute
+    if minute < 10:
+        minute = "0" + str(minute)
+    print("day: " + str(day) + " month: " + str(month)+ " year: " + str(year)+ " hour: " + str(hour)+ " minute: " + str(minute))
+    reminderNow = db.events.find({"reminderTime": str(hour)+":"+str(minute), "reminderDay": str(year)+"-"+str(month)+"-"+str(day)})
+    print(reminderNow.count())
+    if reminderNow.count() > 0:
+        print("in if")
+        reminderNameReFun = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
+        reminderNameRe2Fun = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
+        #takes into considersation strings with apostrophies
+        reminderTextRe1Fun = re.compile(r"u'reminderText': u'(.*)', u'reminderDay")
+        reminderTextRe2Fun = re.compile(r"u'reminderText': u\"(.*)\", u'reminderDay")
+        usernameRe1 = re.compile(r"u'username': u'(.*)', u'reminderName'")
+        usernameRe2 = re.compile(r"u'username': u\"(.*)\", u'reminderName'")
+        for reminderResult in reminderNow:
+            print("in for loop")
+            #username 
+            reminderNameFun=usernameRe1.search(str(reminderResult))
+            reminderUser=""
+            if reminderNameFun is not None:
+                reminderUser = reminderNameFun.group(1)            
+            else:
+                reminderNameFun=usernameRe2.search(str(reminderResult))
+                reminderUser=reminderNameFun.group(1)
+            phoneNum = ""
+            print("reminderUser: " + reminderUser)
+            usernameQuery = db.users.find_one({"username":reminderUser})
+            print(usernameQuery)
+            if usernameQuery is not None:
+                phoneNum = usernameQuery['phoneNumber']
+                print("made it here " + phoneNum)
+            titleReminderSearch = reminderNameReFun.search(str(reminderResult))
+            title=""
+            if titleReminderSearch is not None:
+                title=titleReminderSearch.group(1)
+            else:
+                titleReminderSearch=reminderNameRe2Fun.search(str(reminderResult))
+                title=titleReminderSearch.group(1)
+            bodyReminderSearch = reminderTextRe1Fun.search(str(reminderResult))
+            body=""
+            if bodyReminderSearch is not None:
+                body = bodyReminderSearch.group(1)
+            else:
+                bodyReminderSearch= reminderTextRe2Fun.search(str(reminderResult))
+                body=bodyReminderSearch.group(1)
+            msg = title+" : "+body
+            phoneNum="+1"+phoneNum
+            print("phoneNum: " + phoneNum)
+            print("msg: " + msg)
+            sendMessage(phoneNum, msg)
     print("running")
     app.run(host='0.0.0.0', port=3456)
+
+    
