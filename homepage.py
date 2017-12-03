@@ -18,16 +18,12 @@ numberFrom = "+15162520096"
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if "login" in request.form:
-        print("login")
         return redirect(url_for('login'))
     elif "becomeUser" in request.form:
-        print("become user")
         return redirect(url_for('becomeUser'))
     elif 'username' in session:
-        print(session['username'])
         return redirect(url_for('loggedIn'))
     else:
-        print("in else")
         return render_template('homepage.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -38,16 +34,13 @@ def login():
         password = request.form['password']
         if username and password:
             if db.users.find_one({"username": username}):
-                print("in if find one")
                 cursor = db.users.find_one({"username": username})
                 saltedPass = cursor['password']
                 phoneNum = cursor['phoneNumber']
                 if sha256_crypt.verify(password, saltedPass):
-                    print("pass verified")
                     session['username'] = request.form['username']
                     session['phoneNumber'] = phoneNum
                     return redirect(url_for('loggedIn'))
-                print("doesn't match")
     if "back" in request.form:
         return redirect(url_for('index'))
     return render_template('login.html')
@@ -120,19 +113,14 @@ def editReminder():
         matchTime = reminderTimeRe.search(str(doc))
         matchDay = reminderDayRe.search(str(doc))
         if matchName is not None:
-            print("one name: " + matchName.group(1))
             eventStr+=matchName.group(1) + ": "
         elif matchName2 is not None:
-            print("two name: " + matchName2.group(1))
             eventStr+=matchName2.group(1) + ": "
         if matchText1 is not None:
-            print("one text: " + matchText1.group(1))
             eventStr+=matchText1.group(1)
         elif matchText2 is not None:
-            print("two text: " + matchText2.group(1))
             eventStr+=matchText2.group(1)
         if matchTime is not None:
-            print(matchTime.group(1))
             time = re.compile("(\d{2}):(\d{2})")
             tm = time.search(matchTime.group(1))
             if int(tm.group(1)) < 12:
@@ -141,7 +129,6 @@ def editReminder():
                 hr = str(int(tm.group(1))-12)
                 eventStr+= "\n at " + hr + ":" + tm.group(2) + "PM"
         if matchDay is not None:
-            print(matchDay.group(1))
             eventStr+=" on " + matchDay.group(1)
         listEvents.append(eventStr)
     if "updateReminder" in request.form:
@@ -151,12 +138,9 @@ def editReminder():
         reminderTime = request.form['reminderTime']
         reminderText = request.form['reminderText']
         reminderTo = request.form['userTo']
-        print(reminderName + " " + newReminderName + ' ' + reminderDay + " " + reminderTime + " " + reminderText + " " + reminderTo)
         if reminderName and newReminderName and reminderDay and reminderTime and reminderText and reminderTo:
-            print("all fields have been filled")
             if db.events.find({"username": session['username'], "reminderName": reminderName}).count() != 0:
                 db.events.update({"username": session['username'], "reminderName": reminderName}, {"$set":{"username": reminderTo, "reminderName": newReminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText}})
-                print("right before return")
                 return redirect(url_for('loggedIn')) 
     if "back" in request.form:
         return redirect(url_for('index'))      
@@ -184,19 +168,14 @@ def deleteReminder():
         matchTime = reminderTimeRe.search(str(doc))
         matchDay = reminderDayRe.search(str(doc))
         if matchName is not None:
-            print("one name: " + matchName.group(1))
             eventStr+=matchName.group(1) + ": "
         elif matchName2 is not None:
-            print("two name: " + matchName2.group(1))
             eventStr+=matchName2.group(1) + ": "
         if matchText1 is not None:
-            print("one text: " + matchText1.group(1))
             eventStr+=matchText1.group(1)
         elif matchText2 is not None:
-            print("two text: " + matchText2.group(1))
             eventStr+=matchText2.group(1)
         if matchTime is not None:
-            print(matchTime.group(1))
             time = re.compile("(\d{2}):(\d{2})")
             tm = time.search(matchTime.group(1))
             if int(tm.group(1)) < 12:
@@ -205,7 +184,6 @@ def deleteReminder():
                 hr = str(int(tm.group(1))-12)
                 eventStr+= "\n at " + hr + ":" + tm.group(2) + "PM"
         if matchDay is not None:
-            print(matchDay.group(1))
             eventStr+=" on " + matchDay.group(1)
         listEvents.append(eventStr)
     if "deleteReminder" in request.form:
@@ -229,6 +207,137 @@ def loggedIn():
         return redirect(url_for('editReminder'))
     if "deleteReminder" in request.form:
         return redirect(url_for('deleteReminder'))
+     #check current time to get rid of old reminders
+    timeNow = datetime.now()
+    nowDay = timeNow.day
+    if nowDay < 10:
+        nowDay = "0" + str(nowDay)
+    nowMonth = timeNow.month
+    if nowMonth < 10:
+        nowMonth = "0" + str(nowMonth)
+    nowYear = timeNow.year
+    nowHour = timeNow.hour
+    if nowHour < 10:
+        nowHour = "0" + str(nowHour)
+    nowMinute = timeNow.minute
+    if nowMinute < 10:
+        nowMinute = "0" + str(nowMinute)
+    getRidReminders = db.events.find({"username":session['username']})
+    if getRidReminders.count() > 0:
+        getRidReminderName = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
+        getRidReminderName2 = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
+        getRidUser1 = re.compile(r"u'username': u'(.*)', u'reminderName'")
+        getRidUser2 = re.compile(r"u'username': u\"(.*)\", u'reminderName'")
+        getRidDate = re.compile(r"u'reminderDay': u'(\d{4})-(\d{2})-(\d{2})', u'_id'")
+        getRidTime = re.compile(r"u'reminderTime': u'(\d{2}):(\d{2})', u'reminderText':")
+        for ridReminder in getRidReminders:
+            ridDate = getRidDate.search(str(ridReminder))
+            ridDay=""
+            ridMonth=""
+            ridyear=""
+            ridHour=""
+            ridMinute = ""
+            if ridDate is not None:
+                ridDay = ridDate.group(3)
+                ridMonth = ridDate.group(2)
+                ridYear = ridDate.group(1)
+            ridTime = getRidTime.search(str(ridReminder))
+            if ridTime is not None:
+                ridHour = ridTime.group(1)
+                ridMinute = ridTime.group(2)
+            #if past the year
+            if int(ridYear) < int(nowYear):
+                #get rid
+                #username 
+                ridReminderUser=getRidUser1.search(str(ridReminder))
+                reminderUserGetRid=""
+                if ridReminderUser is not None:
+                    reminderUserGetRid = ridReminderUser.group(1)            
+                else:
+                    ridReminderUser=getRidUser2.search(str(ridReminder))
+                    reminderUserGetRid=ridReminderUser.group(1)
+                ridTitleReminder = getRidReminderName.search(str(ridReminder))
+                reminderTitleGetRid=""
+                if ridTitleReminder is not None:
+                    reminderTitleGetRid=ridTitleReminder.group(1)
+                else:
+                    ridTitleReminder=getRidReminderName2.search(str(ridReminder))
+                    reminderTitleGetRid = ridTitleReminder.group(1)
+                db.events.remove({"username":reminderUserGetRid, "reminderName":reminderTitleGetRid})
+            #is same year and past month or same month and past the day
+            elif int(ridYear) == int(nowYear) and int(ridMonth) < int(nowMonth):
+                #username 
+                ridReminderUser=getRidUser1.search(str(ridReminder))
+                reminderUserGetRid=""
+                if ridReminderUser is not None:
+                    reminderUserGetRid = ridReminderUser.group(1)            
+                else:
+                    ridReminderUser=getRidUser2.search(str(ridReminder))
+                    reminderUserGetRid=ridReminderUser.group(1)
+                ridTitleReminder = getRidReminderName.search(str(ridReminder))
+                reminderTitleGetRid=""
+                if ridTitleReminder is not None:
+                    reminderTitleGetRid=ridTitleReminder.group(1)
+                else:
+                    ridTitleReminder=getRidReminderName2.search(str(ridReminder))
+                    reminderTitleGetRid = ridTitleReminder.group(1)
+                db.events.remove({"username":reminderUserGetRid, "reminderName":reminderTitleGetRid})
+            elif int(ridYear) == int(nowYear) and int(ridMonth) == int(nowMonth) and int(ridDay) < int(nowDay):
+                #get rid
+                #username 
+                ridReminderUser=getRidUser1.search(str(ridReminder))
+                reminderUserGetRid=""
+                if ridReminderUser is not None:
+                    reminderUserGetRid = ridReminderUser.group(1)            
+                else:
+                    ridReminderUser=getRidUser2.search(str(ridReminder))
+                    reminderUserGetRid=ridReminderUser.group(1)
+                ridTitleReminder = getRidReminderName.search(str(ridReminder))
+                reminderTitleGetRid=""
+                if ridTitleReminder is not None:
+                    reminderTitleGetRid=ridTitleReminder.group(1)
+                else:
+                    ridTitleReminder=getRidReminderName2.search(str(ridReminder))
+                    reminderTitleGetRid = ridTitleReminder.group(1)
+                db.events.remove({"username":reminderUserGetRid, "reminderName":reminderTitleGetRid})
+            #if same year, month, day and past hour
+            elif int(ridYear) == int(nowYear) and int(ridMonth) == int(nowMonth) and int(ridDay) == int(nowDay) and int(ridHour)<int(nowHour):
+                #get rid
+                #username 
+                ridReminderUser=getRidUser1.search(str(ridReminder))
+                reminderUserGetRid=""
+                if ridReminderUser is not None:
+                    reminderUserGetRid = ridReminderUser.group(1)            
+                else:
+                    ridReminderUser=getRidUser2.search(str(ridReminder))
+                    reminderUserGetRid=ridReminderUser.group(1)
+                ridTitleReminder = getRidReminderName.search(str(ridReminder))
+                reminderTitleGetRid=""
+                if ridTitleReminder is not None:
+                    reminderTitleGetRid=ridTitleReminder.group(1)
+                else:
+                    ridTitleReminder=getRidReminderName2.search(str(ridReminder))
+                    reminderTitleGetRid = ridTitleReminder.group(1)
+                db.events.remove({"username":reminderUserGetRid, "reminderName":reminderTitleGetRid})
+            #if same day, month, year and hour but past minute
+            elif int(ridYear) == int(nowYear) and int(ridMonth) == int(nowMonth) and int(ridDay) == int(nowDay) and int(ridHour) == int(nowHour) and int(ridMinute) < int(nowMinute):
+                #get rid
+                #username 
+                ridReminderUser=getRidUser1.search(str(ridReminder))
+                reminderUserGetRid=""
+                if ridReminderUser is not None:
+                    reminderUserGetRid = ridReminderUser.group(1)            
+                else:
+                    ridReminderUser=getRidUser2.search(str(ridReminder))
+                    reminderUserGetRid=ridReminderUser.group(1)
+                ridTitleReminder = getRidReminderName.search(str(ridReminder))
+                reminderTitleGetRid=""
+                if ridTitleReminder is not None:
+                    reminderTitleGetRid=ridTitleReminder.group(1)
+                else:
+                    ridTitleReminder=getRidReminderName2.search(str(ridReminder))
+                    reminderTitleGetRid = ridTitleReminder.group(1)
+                db.events.remove({"username":reminderUserGetRid, "reminderName":reminderTitleGetRid})
     result = db.events.find({"username": username})
     listEvents =[]
     #regex for title of event, text of event, date and time
@@ -249,19 +358,14 @@ def loggedIn():
         matchTime = reminderTimeRe.search(str(doc))
         matchDay = reminderDayRe.search(str(doc))
         if matchName is not None:
-            print("one name: " + matchName.group(1))
             eventStr+=matchName.group(1) + ": "
         elif matchName2 is not None:
-            print("two name: " + matchName2.group(1))
             eventStr+=matchName2.group(1) + ": "
         if matchText1 is not None:
-            print("one text: " + matchText1.group(1))
             eventStr+=matchText1.group(1)
         elif matchText2 is not None:
-            print("two text: " + matchText2.group(1))
             eventStr+=matchText2.group(1)
         if matchTime is not None:
-            print(matchTime.group(1))
             time = re.compile("(\d{2}):(\d{2})")
             tm = time.search(matchTime.group(1))
             if int(tm.group(1)) < 12:
@@ -270,13 +374,11 @@ def loggedIn():
                 hr = str(int(tm.group(1))-12)
                 eventStr+= "\n at " + hr + ":" + tm.group(2) + "PM"
         if matchDay is not None:
-            print(matchDay.group(1))
             eventStr+=" on " + matchDay.group(1)
         listEvents.append(eventStr)
     userList = db.users.find()
     users = []
     for user in userList:
-
         name = re.compile(r"u'username': u'(.*)', u'password'")
         userToAdd = name.search(str(user))
         if userToAdd is not None:
@@ -288,13 +390,13 @@ def loggedIn():
             if db.users.find_one({"username": friend}):
                 if db.friends.find({"username": session['username'], "friend": friend}).count() == 0:
                     db.friends.insert_one({"username": username, "friend": friend})
+        return redirect(url_for('loggedIn'))
     friendList = db.friends.find({"username": session['username']})
     friends = []
     friendRe = re.compile(r"u'friend': u'(.*)'}")
     for friend in friendList:
         matchFriend = friendRe.search(str(friend))
         if matchFriend is not None:
-            print(matchFriend.group(1))
             friends.append(matchFriend.group(1))
     if "createReminder" in request.form:
         reminderName = request.form['reminderName']
@@ -309,16 +411,14 @@ def loggedIn():
                 for friend in friends:
                     if friend == reminderTo:
                         db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+        return redirect(url_for('loggedIn'))
     return render_template('loggedIn.html', events=listEvents, name=session['username'], users=users, friends=friends)
         
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
-    print("in logout")
-    print(session['username'])
     # remove the username from the session if it's there
     session.pop('username', None)
-    #print(session['username'])
     return redirect(url_for('index'))
 
 
@@ -326,7 +426,6 @@ def logout():
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 
 def sendMessage(numberTo, body):
-    print("in send message")
     message = twilioClient.messages.create(
         to=numberTo,
         from_=numberFrom,
@@ -338,6 +437,9 @@ def sendMessage(numberTo, body):
 
 
 if __name__ == "__main__":
+    print("running")
+    app.run(host='0.0.0.0', port=3456)
+    print("top of true")
     now = datetime.now()
     day = now.day
     if day < 10:
@@ -352,11 +454,8 @@ if __name__ == "__main__":
     minute = now.minute
     if minute < 10:
         minute = "0" + str(minute)
-    print("day: " + str(day) + " month: " + str(month)+ " year: " + str(year)+ " hour: " + str(hour)+ " minute: " + str(minute))
     reminderNow = db.events.find({"reminderTime": str(hour)+":"+str(minute), "reminderDay": str(year)+"-"+str(month)+"-"+str(day)})
-    print(reminderNow.count())
     if reminderNow.count() > 0:
-        print("in if")
         reminderNameReFun = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
         reminderNameRe2Fun = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
         #takes into considersation strings with apostrophies
@@ -365,7 +464,6 @@ if __name__ == "__main__":
         usernameRe1 = re.compile(r"u'username': u'(.*)', u'reminderName'")
         usernameRe2 = re.compile(r"u'username': u\"(.*)\", u'reminderName'")
         for reminderResult in reminderNow:
-            print("in for loop")
             #username 
             reminderNameFun=usernameRe1.search(str(reminderResult))
             reminderUser=""
@@ -375,12 +473,9 @@ if __name__ == "__main__":
                 reminderNameFun=usernameRe2.search(str(reminderResult))
                 reminderUser=reminderNameFun.group(1)
             phoneNum = ""
-            print("reminderUser: " + reminderUser)
             usernameQuery = db.users.find_one({"username":reminderUser})
-            print(usernameQuery)
             if usernameQuery is not None:
                 phoneNum = usernameQuery['phoneNumber']
-                print("made it here " + phoneNum)
             titleReminderSearch = reminderNameReFun.search(str(reminderResult))
             title=""
             if titleReminderSearch is not None:
@@ -397,10 +492,4 @@ if __name__ == "__main__":
                 body=bodyReminderSearch.group(1)
             msg = title+" : "+body
             phoneNum="+1"+phoneNum
-            print("phoneNum: " + phoneNum)
-            print("msg: " + msg)
             sendMessage(phoneNum, msg)
-    print("running")
-    app.run(host='0.0.0.0', port=3456)
-
-    
