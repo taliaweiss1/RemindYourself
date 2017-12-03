@@ -7,6 +7,9 @@ from flask import Flask, render_template, session, redirect, url_for, escape, re
 from passlib.hash import sha256_crypt
 from pymongo import MongoClient
 from datetime import datetime
+import threading
+from threading import Thread
+
 app = Flask(__name__)
 client = MongoClient()
 db = client.reminders
@@ -432,64 +435,66 @@ def sendMessage(numberTo, body):
         body=body
     )
     
+def run():
+    print("running")
+    app.run(host='0.0.0.0', port=3456)
 
-    
+def messages():
+        now = datetime.now()
+        day = now.day
+        if day < 10:
+            day = "0" + str(day)
+        month = now.month
+        if month < 10:
+            month = "0" + str(month)
+        year = now.year
+        hour = now.hour
+        if hour < 10:
+            hour = "0" + str(hour)
+        minute = now.minute
+        if minute < 10:
+            minute = "0" + str(minute)
+        reminderNow = db.events.find({"reminderTime": str(hour)+":"+str(minute), "reminderDay": str(year)+"-"+str(month)+"-"+str(day)})
+        if reminderNow.count() > 0:
+            reminderNameReFun = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
+            reminderNameRe2Fun = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
+            #takes into considersation strings with apostrophies
+            reminderTextRe1Fun = re.compile(r"u'reminderText': u'(.*)', u'reminderDay")
+            reminderTextRe2Fun = re.compile(r"u'reminderText': u\"(.*)\", u'reminderDay")
+            usernameRe1 = re.compile(r"u'username': u'(.*)', u'reminderName'")
+            usernameRe2 = re.compile(r"u'username': u\"(.*)\", u'reminderName'")
+            for reminderResult in reminderNow:
+                #username 
+                reminderNameFun=usernameRe1.search(str(reminderResult))
+                reminderUser=""
+                if reminderNameFun is not None:
+                    reminderUser = reminderNameFun.group(1)            
+                else:
+                    reminderNameFun=usernameRe2.search(str(reminderResult))
+                    reminderUser=reminderNameFun.group(1)
+                phoneNum = ""
+                usernameQuery = db.users.find_one({"username":reminderUser})
+                if usernameQuery is not None:
+                    phoneNum = usernameQuery['phoneNumber']
+                titleReminderSearch = reminderNameReFun.search(str(reminderResult))
+                title=""
+                if titleReminderSearch is not None:
+                    title=titleReminderSearch.group(1)
+                else:
+                    titleReminderSearch=reminderNameRe2Fun.search(str(reminderResult))
+                    title=titleReminderSearch.group(1)
+                bodyReminderSearch = reminderTextRe1Fun.search(str(reminderResult))
+                body=""
+                if bodyReminderSearch is not None:
+                    body = bodyReminderSearch.group(1)
+                else:
+                    bodyReminderSearch= reminderTextRe2Fun.search(str(reminderResult))
+                    body=bodyReminderSearch.group(1)
+                msg = title+" : "+body
+                phoneNum="+1"+phoneNum
+                sendMessage(phoneNum, msg)
 
 
 if __name__ == "__main__":
-    print("running")
-    app.run(host='0.0.0.0', port=3456)
-    print("top of true")
-    now = datetime.now()
-    day = now.day
-    if day < 10:
-        day = "0" + str(day)
-    month = now.month
-    if month < 10:
-        month = "0" + str(month)
-    year = now.year
-    hour = now.hour
-    if hour < 10:
-        hour = "0" + str(hour)
-    minute = now.minute
-    if minute < 10:
-        minute = "0" + str(minute)
-    reminderNow = db.events.find({"reminderTime": str(hour)+":"+str(minute), "reminderDay": str(year)+"-"+str(month)+"-"+str(day)})
-    if reminderNow.count() > 0:
-        reminderNameReFun = re.compile(r"u'reminderName': u'(.*)', u'reminderTime'")
-        reminderNameRe2Fun = re.compile(r"u'reminderName': u\"(.*)\", u'reminderTime'")
-        #takes into considersation strings with apostrophies
-        reminderTextRe1Fun = re.compile(r"u'reminderText': u'(.*)', u'reminderDay")
-        reminderTextRe2Fun = re.compile(r"u'reminderText': u\"(.*)\", u'reminderDay")
-        usernameRe1 = re.compile(r"u'username': u'(.*)', u'reminderName'")
-        usernameRe2 = re.compile(r"u'username': u\"(.*)\", u'reminderName'")
-        for reminderResult in reminderNow:
-            #username 
-            reminderNameFun=usernameRe1.search(str(reminderResult))
-            reminderUser=""
-            if reminderNameFun is not None:
-                reminderUser = reminderNameFun.group(1)            
-            else:
-                reminderNameFun=usernameRe2.search(str(reminderResult))
-                reminderUser=reminderNameFun.group(1)
-            phoneNum = ""
-            usernameQuery = db.users.find_one({"username":reminderUser})
-            if usernameQuery is not None:
-                phoneNum = usernameQuery['phoneNumber']
-            titleReminderSearch = reminderNameReFun.search(str(reminderResult))
-            title=""
-            if titleReminderSearch is not None:
-                title=titleReminderSearch.group(1)
-            else:
-                titleReminderSearch=reminderNameRe2Fun.search(str(reminderResult))
-                title=titleReminderSearch.group(1)
-            bodyReminderSearch = reminderTextRe1Fun.search(str(reminderResult))
-            body=""
-            if bodyReminderSearch is not None:
-                body = bodyReminderSearch.group(1)
-            else:
-                bodyReminderSearch= reminderTextRe2Fun.search(str(reminderResult))
-                body=bodyReminderSearch.group(1)
-            msg = title+" : "+body
-            phoneNum="+1"+phoneNum
-            sendMessage(phoneNum, msg)
+    Thread(target = run).start()
+    Thread(target = messages).start()
