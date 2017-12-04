@@ -377,7 +377,7 @@ def loggedIn():
         createTime = regTime.search(reminderTime)
         createHr = ""
         createMin = ""
-        if createHr is not None:
+        if createTime is not None:
             createHr = createTime.group(1)
             createMin = createTime.group(2)
         createDate = regDay.search(reminderDay)
@@ -388,47 +388,48 @@ def loggedIn():
             createYear = createDate.group(1)
             createMonth = createDate.group(2)
             createDay = createDate.group(3)
-        #if not past the year
-        if int(createYear) > int(nowYear):
-            if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
-                if reminderTo == session['username']:
-                    db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-                else:
-                    for friend in friends:
-                        if friend == reminderTo:
-                            db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-        elif int(createYear) == int(nowYear) and int(createMonth) > int(nowMonth):
-            if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
-                if reminderTo == session['username']:
-                    db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-                else:
-                    for friend in friends:
-                        if friend == reminderTo:
-                            db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-        elif int(createYear) == int(nowYear) and int(createMonth) == int(nowMonth) and int(createDay) > int(nowDay):
-            if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
-                if reminderTo == session['username']:
-                    db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-                else:
-                    for friend in friends:
-                        if friend == reminderTo:
-                            db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-        elif int(createYear) == int(nowYear) and int(createMonth) == int(nowMonth) and int(createDay) == int(nowDay) and int(createHr) > int(nowHour):
-            if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
-                if reminderTo == session['username']:
-                    db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-                else:
-                    for friend in friends:
-                        if friend == reminderTo:
-                            db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-        elif int(createYear) == int(nowYear) and int(createMonth) == int(nowMonth) and int(createDay) == int(nowDay) and int(createHr) == int(nowHour) and int(createMin) > int(nowMinute):
-            if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
-                if reminderTo == session['username']:
-                    db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
-                else:
-                    for friend in friends:
-                        if friend == reminderTo:
-                            db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+        if createYear and createMonth and createDay and createHr and createMin:
+            #if not past the year
+            if int(createYear) > int(nowYear):
+                if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
+                    if reminderTo == session['username']:
+                        db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+                    else:
+                        for friend in friends:
+                            if friend == reminderTo:
+                                db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+            elif int(createYear) == int(nowYear) and int(createMonth) > int(nowMonth):
+                if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
+                    if reminderTo == session['username']:
+                        db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+                    else:
+                        for friend in friends:
+                            if friend == reminderTo:
+                                db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+            elif int(createYear) == int(nowYear) and int(createMonth) == int(nowMonth) and int(createDay) > int(nowDay):
+                if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
+                    if reminderTo == session['username']:
+                        db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+                    else:
+                        for friend in friends:
+                            if friend == reminderTo:
+                                db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+            elif int(createYear) == int(nowYear) and int(createMonth) == int(nowMonth) and int(createDay) == int(nowDay) and int(createHr) > int(nowHour):
+                if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
+                    if reminderTo == session['username']:
+                        db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+                    else:
+                        for friend in friends:
+                            if friend == reminderTo:
+                                db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+            elif int(createYear) == int(nowYear) and int(createMonth) == int(nowMonth) and int(createDay) == int(nowDay) and int(createHr) == int(nowHour) and int(createMin) > int(nowMinute):
+                if reminderName and reminderTime and reminderDay and reminderText and reminderTo:
+                    if reminderTo == session['username']:
+                        db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
+                    else:
+                        for friend in friends:
+                            if friend == reminderTo:
+                                db.events.insert_one({"username": reminderTo, "reminderName": reminderName, "reminderTime": reminderTime, "reminderDay": reminderDay, "reminderText":reminderText})
         return redirect(url_for('loggedIn'))
     return render_template('loggedIn.html', events=listEvents, name=session['username'], users=users, friends=friends, requests = requests)
         
