@@ -4,20 +4,26 @@ h1{
     font-size: 400%;
     margin: 0px;
     margin-bottom: 0px;
+    background-color: Salmon;
+    
 }
 h5{
-    color: White;
+    color: Salmon;
 }
 body{
-    background-color: black;
-    color:white;
-    font-family: Georgia, Times New Roman;
+    background-color: White;
+    color:Salmon;
+    font-family: 'Miriam Libre', sans-serif;
 }
 .remindersAndForm{
     position: absolute;
-    left:0px;
+    left:10px;
 }
 .users{
     position: absolute;
-    right:0px;
+    right:10px;
+}
+.button{
+    font-family: 'Miriam Libre', sans-serif;
+    color:LightSlateGray;
 }

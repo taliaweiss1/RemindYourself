@@ -4,6 +4,7 @@
     <title>Your Reminders</title>
     <link rel = "stylesheet" type = "text/css" href="{{ url_for('static', filename='css/reminders.css') }}" />
     <meta charset="utf-8"/>
+    <link href="https://fonts.googleapis.com/css?family=Miriam+Libre" rel="stylesheet">
 </head>
 <body>
     {% if name %}
@@ -14,26 +15,26 @@
             <h5>{{ n }}</h5>
         {% endfor %}
         <form method='post'>
-            <input type = 'submit' name='editReminder' value ="Edit A Reminder">
-            <input type = 'submit' name ='deleteReminder' value ="Delete A Reminder">
+            <input type = 'submit' name='editReminder' class = "button" value ="Edit A Reminder">
+            <input type = 'submit' name ='deleteReminder' class = "button" value ="Delete A Reminder">
         </form>
         <form method="post">
             <h3>Create Event:</h3>
             <p><label for="reminderName">Reminder Name: </label>
-            <input type='text' id="reminderName" name="reminderName">
+            <input type='text' style = "color: LightSlateGrey;" id="reminderName" name="reminderName">
             <p><label for="userTo">Send To: </label>
-            <input type='text' id="userTo" name="userTo" value= {{ name }}>
+            <input type='text' style = "color: LightSlateGrey;" id="userTo" name="userTo" value= {{ name }}>
             <p><label for="reminderText">Text Message to Send:</label>
-            <p><textarea name = "reminderText" id="reminderText" rows="10" cols="30"></textarea>
+            <p><textarea name = "reminderText" style = "color: LightSlateGrey;" id="reminderText" rows="10" cols="30"></textarea>
             <p><label for="reminderDay">What day do you want this reminder?: </label>
-            <input type='date' id="reminderDay" name="reminderDay">
+            <input type='date' style = "color: LightSlateGrey;" id="reminderDay" name="reminderDay">
             <p><label for="reminderTime">What time do you want this reminder?:</label>
-            <input type='time' id="reminderTime" name="reminderTime">
-            <p><input type='submit' name = "createReminder" value="Create Reminder">
+            <input type='time' id="reminderTime" style = "color: LightSlateGrey;" name="reminderTime">
+            <p><input type='submit' name = "createReminder" class = "button" value="Create Reminder">
         </form>
         <form method="post">
-            <p><input type ='submit' name = 'editInfo' value = 'Edit My Info'>
-            <p><input type='submit' name = "logout" value="logout">
+            <p><input type ='submit' name = 'editInfo' class = "button" value = 'Edit My Info'>
+            <p><input type='submit' name = "logout" class = "button" value="logout">
         </form>
     </div>
     <div class="users">
@@ -47,8 +48,8 @@
         {% endfor %}
         <form method="post">
             <p></p><label for='userToAccept'>Accept Request:</label>
-            <input type='text' id = 'userToAccept' name = 'userToAccept' placeholder='Username of Friend'/>
-            <p></p><input type='submit' name = 'acceptFriend' value='Accept Request'/>
+            <input type='text' id = 'userToAccept' style = "color: LightSlateGrey;" name = 'userToAccept' placeholder='Username of Friend'/>
+            <p></p><input type='submit' name = 'acceptFriend' class = "button" value='Accept Request'/>
         </form>
         <p><h3>Friends:</h3>
         {% for n in friends %}
@@ -56,8 +57,8 @@
         {% endfor %}
         <form method="post">
             <p></p><label for='userToAdd'>Add Friend:</label>
-            <input type='text' id = 'userToAdd' name = 'userToAdd' placeholder='Username of Friend'/>
-            <p></p><input type='submit' name = 'addFriend' value='Add Friend'/>
+            <input type='text' id = 'userToAdd' style = "color: LightSlateGrey;" name = 'userToAdd' placeholder='Username of Friend'/>
+            <p></p><input type='submit' name = 'addFriend' class = "button" value='Add Friend'/>
         </form>
     </div>
 </body>

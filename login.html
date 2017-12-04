@@ -4,18 +4,19 @@
     <title>Login</title>
     <link rel = "stylesheet" type = "text/css" href="{{ url_for('static', filename='css/reminders.css') }}" />
     <meta charset="utf-8"/>
+    <link href="https://fonts.googleapis.com/css?family=Miriam+Libre" rel="stylesheet">
 </head>
 <body>
-<form method="post">
-    <p><label for="username">Username: </label>
-    <input type='text' id="username" name="username">
-    <p><label for="password">Password: </label>
-    <input type='password' id="password" name='password'>
-    <p><input type='submit' name="login" id="login" value="Login">
-</form>
-<form method="post">
-    <p>Go Back
-    <input type='submit' name="back" id='back' value="Back">
-</form>
+    <h1>Reminders</h1>
+    <form method="post">
+        <p><label for="username">Username: </label>
+        <input type='text' style = "color: LightSlateGrey;" id="username" name="username">
+        <p><label for="password">Password: </label>
+        <input type='password' style = "color: LightSlateGrey;" id="password" name='password'>
+        <p><input type='submit' class = "button" name="login" id="login" value="Login">
+    </form>
+    <form method="post">
+        <input type='submit' name="back" id='back' class = "button" value="Back">
+    </form>
 </body>
 </html>

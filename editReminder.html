@@ -4,32 +4,31 @@
     <title>Edit A Reminder</title>
     <link rel = "stylesheet" type = "text/css" href="{{ url_for('static', filename='css/reminders.css') }}" />
     <meta charset="utf-8"/>
+    <link href="https://fonts.googleapis.com/css?family=Miriam+Libre" rel="stylesheet">
 </head>
 <body>
     <h1>Edit A Reminder</h1>
+    {% for n in events %}
+            <h5>{{ n }}</h5>
+    {% endfor %}
     <form method="post">
-        {% for n in events %}
-                <h5>{{ n }}</h5>
-        {% endfor %}
-        <form method="post">
-            <h3>Edit Reminder (please fill out all fields):</h3>
-            <p><label for="reminderName">Reminder Name: </label>
-            <input type='text' id="reminderName" name="reminderName">
-            <p><label for="newReminderName">New Reminder Name: </label>
-            <input type='text' id="newReminderName" name="newReminderName">
-            <p><label for="userTo">Send To: </label>
-            <input type='text' id="userTo" name="userTo" value= {{ name }}>
-            <p><label for="reminderText">New Text to Send:</label>
-            <p><textarea name = "reminderText" id="reminderText" rows="10" cols="30"></textarea>
-            <p><label for="reminderDay">New Date: </label>
-            <input type='date' id="reminderDay" name="reminderDay">
-            <p><label for="reminderTime">New Time:</label>
-            <input type='time' id="reminderTime" name="reminderTime">
-            <p><input type='submit' name = "updateReminder" value="Update Reminder">
-        </form>
+        <h3>Edit Reminder (please fill out all fields):</h3>
+        <p><label for="reminderName">Reminder Name: </label>
+        <input type='text' style = "color: LightSlateGrey;" id="reminderName" name="reminderName">
+        <p><label for="newReminderName">New Reminder Name: </label>
+        <input type='text' style = "color: LightSlateGrey;" id="newReminderName" name="newReminderName">
+        <p><label for="userTo">Send To: </label>
+        <input type='text' style = "color: LightSlateGrey;" id="userTo" name="userTo" value= {{ name }}>
+        <p><label for="reminderText">New Text to Send:</label>
+        <p><textarea name = "reminderText" style = "color: LightSlateGrey;" id="reminderText" rows="10" cols="30"></textarea>
+        <p><label for="reminderDay">New Date: </label>
+        <input type='date' style = "color: LightSlateGrey;" id="reminderDay" name="reminderDay">
+        <p><label for="reminderTime">New Time:</label>
+        <input type= time style = "color: LightSlateGrey;" id="reminderTime" name="reminderTime">
+        <p><input type='submit' name = "updateReminder" class = "button" value="Update Reminder">
     </form>
     <form method="post">
-        <input type='submit' name = "back" id="back" value="Back">
+        <input type='submit' name = "back" id="back" class = "button" value="Back">
     </form>
 </body>
 </html>
