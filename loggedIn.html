@@ -41,6 +41,15 @@
         {% for n in users %}
             <h5>{{ n }}</h5>
         {% endfor %}
+        <p><h3>Friend Requests:</h3>
+        {% for n in requests %}
+            <h5>{{ n }}</h5>
+        {% endfor %}
+        <form method="post">
+            <p></p><label for='userToAccept'>Accept Request:</label>
+            <input type='text' id = 'userToAccept' name = 'userToAccept' placeholder='Username of Friend'/>
+            <p></p><input type='submit' name = 'acceptFriend' value='Accept Request'/>
+        </form>
         <p><h3>Friends:</h3>
         {% for n in friends %}
             <h5>{{ n }}</h5>
